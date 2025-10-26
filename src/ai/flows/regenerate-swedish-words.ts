@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
   - Useful in everyday conversations, work, and professional contexts
   - Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
   - Avoid overly academic or highly specialized technical terms
-  - Include nouns with their definite articles (en/ett/det/den)
+  - Always include articles with nouns: indefinite (en/ett) OR definite (den/det/de) forms
   
   The user has requested a new set of words.
   {{#if reason}}
@@ -65,12 +65,12 @@ Example:
       "english": "to develop"
     },
     {
-      "swedish": "utmaningen",
-      "english": "the challenge"
+      "swedish": "en utmaning",
+      "english": "a challenge"
     },
    {
-      "swedish": "att genomföra",
-      "english": "to implement"
+      "swedish": "ett projekt",
+      "english": "a project"
     },
     {
       "swedish": "betydelsefull",
@@ -100,7 +100,7 @@ The words should be:
 - Useful in everyday conversations, work, and professional contexts
 - Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
 - Avoid overly academic or highly specialized technical terms
-- Include nouns with their definite articles (en/ett/det/den)
+- Always include articles with nouns: indefinite (en/ett) OR definite (den/det/de) forms
 
 The user has requested a new set of words.`;
 
@@ -119,8 +119,8 @@ The user has requested a new set of words.`;
 {
   "words": [
     {"swedish": "att utveckla", "english": "to develop"},
-    {"swedish": "utmaningen", "english": "the challenge"},
-    {"swedish": "att genomföra", "english": "to implement"},
+    {"swedish": "en utmaning", "english": "a challenge"},
+    {"swedish": "ett projekt", "english": "a project"},
     {"swedish": "betydelsefull", "english": "significant"},
     {"swedish": "samhället", "english": "the society"}
   ]
