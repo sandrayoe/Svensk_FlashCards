@@ -184,14 +184,14 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
-      {/* Header - reduced spacing for compact layout */}
-      <header className="py-4 sm:py-6 md:py-8 px-4 text-center relative">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
+      {/* Header - moderate spacing */}
+      <header className="py-8 px-4 text-center relative">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowWordLog(true)}
-          className="absolute top-4 right-4 sm:top-6 sm:right-6 min-w-0"
+          className="absolute top-6 right-4 min-w-0"
         >
           <BookOpen className="h-4 w-4" />
           <span className="ml-2 hidden sm:inline">Learning Log</span>
@@ -200,64 +200,66 @@ export default function Home() {
         <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-primary leading-tight">
           Svenska Flash
         </h1>
-        <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-foreground/80 max-w-md mx-auto">
+        <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-foreground/80 max-w-md mx-auto">
           Your daily dose of Swedish vocabulary
         </p>
       </header>
 
-      {/* Main content - reduced spacing for compact layout */}
-      <main className="flex-grow flex items-center justify-center px-4 py-2 sm:py-4">
-        {loading ? (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <Loader className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-primary" />
-            <p className="text-sm sm:text-base md:text-lg text-foreground/80">
-              Generating your words for today...
-            </p>
-          </div>
-        ) : (
-          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto">
-            <Carousel className="w-full">
-              <CarouselContent>
-                {words.map((word, index) => (
-                  <CarouselItem key={index}>
-                    <div className="p-1 sm:p-2">
-                      <FlashCard
-                        index={index}
-                        swedish={word.swedish}
-                        english={word.english}
-                        onPronounce={handlePronounce}
-                        onFlip={handleCardFlip}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden sm:flex -left-8 md:-left-12" />
-              <CarouselNext className="hidden sm:flex -right-8 md:-right-12" />
-            </Carousel>
-            
-            {/* Mobile navigation indicators */}
-            <div className="flex justify-center mt-4 gap-2 sm:hidden">
-              {words.map((_, index) => (
-                <div
-                  key={index}
-                  className="w-2 h-2 rounded-full bg-foreground/20"
-                />
-              ))}
-            </div>
-            
-            {/* Mobile swipe hint */}
-            <div className="text-center mt-4 sm:hidden">
-              <p className="text-xs text-foreground/50">
-                Swipe to navigate • Tap card to flip
+      {/* Main content - moderate spacing */}
+      <main className="px-2 sm:px-4 pt-8 pb-8">
+        <div className="flex justify-center">
+          {loading ? (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <Loader className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-primary" />
+              <p className="text-sm sm:text-base md:text-lg text-foreground/80">
+                Generating your words for today...
               </p>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {words.map((word, index) => (
+                    <CarouselItem key={index}>
+                      <div className="p-1 sm:p-2">
+                        <FlashCard
+                          index={index}
+                          swedish={word.swedish}
+                          english={word.english}
+                          onPronounce={handlePronounce}
+                          onFlip={handleCardFlip}
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden sm:flex -left-8 md:-left-12" />
+                <CarouselNext className="hidden sm:flex -right-8 md:-right-12" />
+              </Carousel>
+              
+              {/* Mobile navigation indicators */}
+              <div className="flex justify-center mt-4 gap-2 sm:hidden">
+                {words.map((_, index) => (
+                  <div
+                    key={index}
+                    className="w-2 h-2 rounded-full bg-foreground/20"
+                  />
+                ))}
+              </div>
+              
+              {/* Mobile swipe hint */}
+              <div className="text-center mt-4 sm:hidden">
+                <p className="text-xs text-foreground/50">
+                  Swipe to navigate • Tap card to flip
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* Footer - reduced spacing for compact layout */}
-      <footer className="py-4 sm:py-6 px-4 text-center">
+      {/* Footer - moderate spacing */}
+      <footer className="px-4 pt-8 pb-8 text-center">
         {!loading && (
           <Button 
             onClick={handleRegenerate} 
