@@ -185,13 +185,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
-      {/* Header - responsive spacing and typography */}
-      <header className="py-6 sm:py-8 md:py-12 lg:py-16 px-4 text-center relative">
+      {/* Header - reduced spacing for compact layout */}
+      <header className="py-4 sm:py-6 md:py-8 px-4 text-center relative">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowWordLog(true)}
-          className="absolute top-6 right-4 sm:top-8 sm:right-6 min-w-0"
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 min-w-0"
         >
           <BookOpen className="h-4 w-4" />
           <span className="ml-2 hidden sm:inline">Learning Log</span>
@@ -200,13 +200,13 @@ export default function Home() {
         <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-primary leading-tight">
           Svenska Flash
         </h1>
-        <p className="mt-2 sm:mt-3 md:mt-4 text-sm sm:text-base md:text-lg lg:text-xl text-foreground/80 max-w-md mx-auto">
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-foreground/80 max-w-md mx-auto">
           Your daily dose of Swedish vocabulary
         </p>
       </header>
 
-      {/* Main content - responsive container and card sizing */}
-      <main className="flex-grow flex items-center justify-center px-4 py-4 sm:py-6 md:py-8">
+      {/* Main content - reduced spacing for compact layout */}
+      <main className="flex-grow flex items-center justify-center px-4 py-2 sm:py-4">
         {loading ? (
           <div className="flex flex-col items-center gap-4 text-center">
             <Loader className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-primary" />
@@ -256,8 +256,8 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer - responsive button sizing */}
-      <footer className="py-6 sm:py-8 md:py-10 px-4 text-center">
+      {/* Footer - reduced spacing for compact layout */}
+      <footer className="py-4 sm:py-6 px-4 text-center">
         {!loading && (
           <Button 
             onClick={handleRegenerate} 
