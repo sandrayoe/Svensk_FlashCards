@@ -10,18 +10,19 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const WordSchema = z.object({
+  swedish: z.string().describe('The Swedish word.'),
+  english: z.string().describe('The English translation of the Swedish word.'),
+});
+
 const RegenerateSwedishWordsInputSchema = z.object({
   reason: z.string().optional().describe('The reason for regenerating the words.'),
+  previousWords: z.array(WordSchema).optional().describe('The list of words that have been previously generated.'),
 });
 export type RegenerateSwedishWordsInput = z.infer<typeof RegenerateSwedishWordsInputSchema>;
 
 const RegenerateSwedishWordsOutputSchema = z.object({
-  words: z.array(
-    z.object({
-      swedish: z.string().describe('The Swedish word.'),
-      english: z.string().describe('The English translation of the Swedish word.'),
-    })
-  ).describe('A list of 5 Swedish words with their English translations.'),
+  words: z.array(WordSchema).length(5).describe('A list of 5 Swedish words with their English translations.'),
 });
 export type RegenerateSwedishWordsOutput = z.infer<typeof RegenerateSwedishWordsOutputSchema>;
 
@@ -33,7 +34,21 @@ const prompt = ai.definePrompt({
   name: 'regenerateSwedishWordsPrompt',
   input: {schema: RegenerateSwedishWordsInputSchema},
   output: {schema: RegenerateSwedishWordsOutputSchema},
-  prompt: `You are a Swedish language tutor. Generate a list of 5 common Swedish words with their English translations. Exclude rare or difficult-to-understand words. Also, avoid nouns without definite articles to avoid confusing the user. The user has requested a new set of words because: {{{reason}}}. Return the words in JSON format.
+  prompt: `You are a Swedish language tutor. Generate a list of 5 common Swedish words with their English translations. Exclude rare or difficult-to-understand words. Also, avoid nouns without definite articles to avoid confusing the user. 
+  
+  The user has requested a new set of words.
+  {{#if reason}}
+  Reason: {{{reason}}}. 
+  {{/if}}
+  
+  {{#if previousWords}}
+  Try to generate words that are different from the ones the user has already seen:
+  {{#each previousWords}}
+  - {{this.swedish}}
+  {{/each}}
+  {{/if}}
+
+  Return the words in JSON format.
 
 Example:
 {

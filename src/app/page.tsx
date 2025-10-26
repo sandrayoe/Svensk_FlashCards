@@ -11,17 +11,38 @@ import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { FlashCard } from '@/components/flash-card';
 import { Loader } from '@/components/loader';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 type Word = {
   swedish: string;
   english: string;
 };
 
+const ALL_WORDS_CACHE_KEY = 'svenska-flash-all-words';
+
 export default function Home() {
   const [words, setWords] = useState<Word[]>([]);
+  const [allSeenWords, setAllSeenWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      const cachedAllWords = localStorage.getItem(ALL_WORDS_CACHE_KEY);
+      if (cachedAllWords) {
+        setAllSeenWords(JSON.parse(cachedAllWords));
+      }
+    } catch (e) {
+      console.error('Could not load all seen words from local storage.', e);
+    }
+  }, []);
 
   const handlePronounce = useCallback((text: string) => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -30,6 +51,22 @@ export default function Home() {
       window.speechSynthesis.speak(utterance);
     }
   }, []);
+
+  const updateWordStorage = useCallback((newWords: Word[]) => {
+    setWords(newWords);
+    const today = new Date().toISOString().split('T')[0];
+    const storageKey = `svenska-flash-${today}`;
+    localStorage.setItem(storageKey, JSON.stringify(newWords));
+
+    const updatedAllWords = [...allSeenWords];
+    newWords.forEach(newWord => {
+      if (!updatedAllWords.some(w => w.swedish === newWord.swedish)) {
+        updatedAllWords.push(newWord);
+      }
+    });
+    setAllSeenWords(updatedAllWords);
+    localStorage.setItem(ALL_WORDS_CACHE_KEY, JSON.stringify(updatedAllWords));
+  }, [allSeenWords]);
 
   const fetchWords = useCallback(async () => {
     setLoading(true);
@@ -43,11 +80,10 @@ export default function Home() {
       } else {
         const result: GenerateDailySwedishWordsOutput = await generateDailySwedishWords();
         if (result && result.words) {
-          setWords(result.words);
-          localStorage.setItem(storageKey, JSON.stringify(result.words));
-          // Clear old caches
+          updateWordStorage(result.words);
+          // Clear old daily caches
           Object.keys(localStorage).forEach((key) => {
-            if (key.startsWith('svenska-flash-') && key !== storageKey) {
+            if (key.startsWith('svenska-flash-') && key !== storageKey && key !== ALL_WORDS_CACHE_KEY) {
               localStorage.removeItem(key);
             }
           });
@@ -63,7 +99,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, updateWordStorage]);
 
   useEffect(() => {
     fetchWords();
@@ -72,12 +108,9 @@ export default function Home() {
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      const result = await regenerateSwedishWords({});
+      const result = await regenerateSwedishWords({ previousWords: allSeenWords });
       if (result && result.words) {
-        setWords(result.words);
-        const today = new Date().toISOString().split('T')[0];
-        const storageKey = `svenska-flash-${today}`;
-        localStorage.setItem(storageKey, JSON.stringify(result.words));
+        updateWordStorage(result.words);
       }
     } catch (error) {
       console.error('Error regenerating words:', error);
@@ -105,18 +138,25 @@ export default function Home() {
             <p>Generating your words for today...</p>
           </div>
         ) : (
-          <div className="w-full max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {words.map((word, index) => (
-                <FlashCard
-                  key={index}
-                  index={index}
-                  swedish={word.swedish}
-                  english={word.english}
-                  onPronounce={handlePronounce}
-                />
-              ))}
-            </div>
+          <div className="w-full max-w-xs sm:max-w-sm mx-auto">
+            <Carousel className="w-full">
+              <CarouselContent>
+                {words.map((word, index) => (
+                  <CarouselItem key={index}>
+                    <div className="p-1">
+                      <FlashCard
+                        index={index}
+                        swedish={word.swedish}
+                        english={word.english}
+                        onPronounce={handlePronounce}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         )}
       </main>
