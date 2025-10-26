@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
   - Useful in everyday conversations, work, and professional contexts
   - Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
   - Avoid overly academic or highly specialized technical terms
-  - Always include articles with nouns: indefinite (en/ett) OR definite (den/det/de) forms
+  - PREFER indefinite forms (en/ett) for nouns to teach gender - this is more educational than definite forms
 
   Return the Swedish words with their English translations in the following JSON format:
   {{json examples='{"words": [{"swedish": "att utveckla", "english": "to develop"}, {"swedish": "utmaningen", "english": "the challenge"}]}'}}`,
@@ -58,12 +58,12 @@ The words should be:
 - Useful in everyday conversations, work, and professional contexts
 - Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
 - Avoid overly academic or highly specialized technical terms
-- Always include articles with nouns: indefinite (en/ett) OR definite (den/det/de) forms
+- PREFER indefinite forms (en/ett) for nouns to teach gender - this is more educational than definite forms
 
-Examples of appropriate level: "att utveckla" (to develop), "en utmaning" (a challenge), "ett projekt" (a project), "betydelsefull" (significant)
+Examples of appropriate level: "att utveckla" (to develop), "en utmaning" (a challenge), "ett projekt" (a project), "en möjlighet" (an opportunity), "betydelsefull" (significant)
 
 Return the Swedish words with their English translations in the following JSON format:
-{"words": [{"swedish": "att utveckla", "english": "to develop"}, {"swedish": "utmaningen", "english": "the challenge"}]}`,
+{"words": [{"swedish": "att utveckla", "english": "to develop"}, {"swedish": "en utmaning", "english": "a challenge"}]}`,
         output: {
           schema: GenerateDailySwedishWordsOutputSchema,
         },
