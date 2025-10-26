@@ -34,7 +34,14 @@ const prompt = ai.definePrompt({
   name: 'regenerateSwedishWordsPrompt',
   input: {schema: RegenerateSwedishWordsInputSchema},
   output: {schema: RegenerateSwedishWordsOutputSchema},
-  prompt: `You are a Swedish language tutor. Generate a list of 5 common Swedish words with their English translations. Exclude rare or difficult-to-understand words. Also, avoid nouns without definite articles to avoid confusing the user. 
+  prompt: `You are a Swedish language tutor. Generate a list of 5 Swedish words at B1-C1 CEFR level, suitable for intermediate to upper-intermediate learners.
+
+  The words should be:
+  - Intermediate level (B1-C1 CEFR) - not basic beginner vocabulary
+  - Useful in everyday conversations, work, and professional contexts
+  - Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
+  - Avoid overly academic or highly specialized technical terms
+  - Include nouns with their definite articles (en/ett/det/den)
   
   The user has requested a new set of words.
   {{#if reason}}
@@ -54,24 +61,24 @@ Example:
 {
   "words": [
     {
-      "swedish": "en bok",
-      "english": "a book"
+      "swedish": "att utveckla",
+      "english": "to develop"
     },
     {
-      "swedish": "att läsa",
-      "english": "to read"
+      "swedish": "utmaningen",
+      "english": "the challenge"
     },
    {
-      "swedish": "blå",
-      "english": "blue"
+      "swedish": "att genomföra",
+      "english": "to implement"
     },
     {
-      "swedish": "huset",
-      "english": "the house"
+      "swedish": "betydelsefull",
+      "english": "significant"
     },
     {
-      "swedish": "springa",
-      "english": "to run"
+      "swedish": "samhället",
+      "english": "the society"
     }
   ]
 }
@@ -85,7 +92,56 @@ const regenerateSwedishWordsFlow = ai.defineFlow(
     outputSchema: RegenerateSwedishWordsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      let promptText = `You are a Swedish language tutor. Generate a list of 5 Swedish words at B1-C1 CEFR level, suitable for intermediate to upper-intermediate learners.
+
+The words should be:
+- Intermediate level (B1-C1 CEFR) - not basic beginner vocabulary
+- Useful in everyday conversations, work, and professional contexts
+- Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
+- Avoid overly academic or highly specialized technical terms
+- Include nouns with their definite articles (en/ett/det/den)
+
+The user has requested a new set of words.`;
+
+      if (input.reason) {
+        promptText += `\nReason: ${input.reason}.`;
+      }
+
+      if (input.previousWords && input.previousWords.length > 0) {
+        promptText += `\n\nTry to generate words that are different from the ones the user has already seen:\n`;
+        input.previousWords.forEach(word => {
+          promptText += `- ${word.swedish}\n`;
+        });
+      }
+
+      promptText += `\nReturn the words in JSON format like this example:
+{
+  "words": [
+    {"swedish": "att utveckla", "english": "to develop"},
+    {"swedish": "utmaningen", "english": "the challenge"},
+    {"swedish": "att genomföra", "english": "to implement"},
+    {"swedish": "betydelsefull", "english": "significant"},
+    {"swedish": "samhället", "english": "the society"}
+  ]
+}`;
+
+      const result = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        prompt: promptText,
+        output: {
+          schema: RegenerateSwedishWordsOutputSchema,
+        },
+      });
+
+      if (!result.output) {
+        throw new Error('No output generated from AI');
+      }
+
+      return result.output;
+    } catch (error) {
+      console.error('Error regenerating Swedish words:', error);
+      throw new Error('Failed to regenerate Swedish words');
+    }
   }
 );

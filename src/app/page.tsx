@@ -7,10 +7,11 @@ import {
 } from '@/ai/flows/generate-daily-swedish-words';
 import { regenerateSwedishWords } from '@/ai/flows/regenerate-swedish-words';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { FlashCard } from '@/components/flash-card';
 import { Loader } from '@/components/loader';
+import { WordLogScreen } from '@/components/word-log-screen';
 import {
   Carousel,
   CarouselContent,
@@ -31,6 +32,7 @@ export default function Home() {
   const [allSeenWords, setAllSeenWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showWordLog, setShowWordLog] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,6 +54,24 @@ export default function Home() {
     }
   }, []);
 
+  const handleCardFlip = useCallback((word: Word) => {
+    // Track card interaction for better learning analytics
+    const WORD_STATS_CACHE_KEY = 'svenska-flash-word-stats';
+    const cachedStats = localStorage.getItem(WORD_STATS_CACHE_KEY);
+    let wordStats: Record<string, { timesReviewed: number; lastReviewed: string; dateAdded: string }> = 
+      cachedStats ? JSON.parse(cachedStats) : {};
+
+    const key = `${word.swedish}-${word.english}`;
+    const now = new Date().toISOString();
+
+    if (wordStats[key]) {
+      wordStats[key].lastReviewed = now;
+      // Don't increment timesReviewed on every flip to avoid inflation
+    }
+
+    localStorage.setItem(WORD_STATS_CACHE_KEY, JSON.stringify(wordStats));
+  }, []);
+
   const updateWordStorage = useCallback((newWords: Word[]) => {
     setWords(newWords);
     const today = new Date().toISOString().split('T')[0];
@@ -59,13 +79,47 @@ export default function Home() {
     localStorage.setItem(storageKey, JSON.stringify(newWords));
 
     const updatedAllWords = [...allSeenWords];
+    const now = new Date().toISOString();
+    
+    // Get or initialize word statistics
+    const WORD_STATS_CACHE_KEY = 'svenska-flash-word-stats';
+    const cachedStats = localStorage.getItem(WORD_STATS_CACHE_KEY);
+    let wordStats: Record<string, { timesReviewed: number; lastReviewed: string; dateAdded: string }> = 
+      cachedStats ? JSON.parse(cachedStats) : {};
+
     newWords.forEach(newWord => {
+      const key = `${newWord.swedish}-${newWord.english}`;
+      
+      // Add to all words if not already there
       if (!updatedAllWords.some(w => w.swedish === newWord.swedish)) {
         updatedAllWords.push(newWord);
+        
+        // Initialize stats for new words
+        if (!wordStats[key]) {
+          wordStats[key] = {
+            timesReviewed: 1,
+            lastReviewed: now,
+            dateAdded: now,
+          };
+        }
+      } else {
+        // Update review count and last reviewed date for existing words
+        if (wordStats[key]) {
+          wordStats[key].timesReviewed += 1;
+          wordStats[key].lastReviewed = now;
+        } else {
+          wordStats[key] = {
+            timesReviewed: 2, // Since it was already seen before
+            lastReviewed: now,
+            dateAdded: now, // Fallback for old words without stats
+          };
+        }
       }
     });
+
     setAllSeenWords(updatedAllWords);
     localStorage.setItem(ALL_WORDS_CACHE_KEY, JSON.stringify(updatedAllWords));
+    localStorage.setItem(WORD_STATS_CACHE_KEY, JSON.stringify(wordStats));
   }, [allSeenWords]);
 
   const fetchWords = useCallback(async () => {
@@ -124,47 +178,98 @@ export default function Home() {
     }
   };
 
+  // Show word log screen if requested
+  if (showWordLog) {
+    return <WordLogScreen onBack={() => setShowWordLog(false)} />;
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="py-12 md:py-16 text-center">
-        <h1 className="font-headline text-5xl md:text-7xl font-bold text-primary">Svenska Flash</h1>
-        <p className="mt-4 text-lg md:text-xl text-foreground/80">Your daily dose of Swedish</p>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
+      {/* Header - responsive spacing and typography */}
+      <header className="py-6 sm:py-8 md:py-12 lg:py-16 px-4 text-center relative">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowWordLog(true)}
+          className="absolute top-6 right-4 sm:top-8 sm:right-6 min-w-0"
+        >
+          <BookOpen className="h-4 w-4" />
+          <span className="ml-2 hidden sm:inline">Learning Log</span>
+        </Button>
+        
+        <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-primary leading-tight">
+          Svenska Flash
+        </h1>
+        <p className="mt-2 sm:mt-3 md:mt-4 text-sm sm:text-base md:text-lg lg:text-xl text-foreground/80 max-w-md mx-auto">
+          Your daily dose of Swedish vocabulary
+        </p>
       </header>
 
-      <main className="flex-grow flex items-center justify-center px-4">
+      {/* Main content - responsive container and card sizing */}
+      <main className="flex-grow flex items-center justify-center px-4 py-4 sm:py-6 md:py-8">
         {loading ? (
-          <div className="flex flex-col items-center gap-4">
-            <Loader className="h-12 w-12 text-primary" />
-            <p>Generating your words for today...</p>
+          <div className="flex flex-col items-center gap-4 text-center">
+            <Loader className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-primary" />
+            <p className="text-sm sm:text-base md:text-lg text-foreground/80">
+              Generating your words for today...
+            </p>
           </div>
         ) : (
-          <div className="w-full max-w-xs sm:max-w-sm mx-auto">
+          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto">
             <Carousel className="w-full">
               <CarouselContent>
                 {words.map((word, index) => (
                   <CarouselItem key={index}>
-                    <div className="p-1">
+                    <div className="p-1 sm:p-2">
                       <FlashCard
                         index={index}
                         swedish={word.swedish}
                         english={word.english}
                         onPronounce={handlePronounce}
+                        onFlip={handleCardFlip}
                       />
                     </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
+              <CarouselPrevious className="hidden sm:flex -left-8 md:-left-12" />
+              <CarouselNext className="hidden sm:flex -right-8 md:-right-12" />
             </Carousel>
+            
+            {/* Mobile navigation indicators */}
+            <div className="flex justify-center mt-4 gap-2 sm:hidden">
+              {words.map((_, index) => (
+                <div
+                  key={index}
+                  className="w-2 h-2 rounded-full bg-foreground/20"
+                />
+              ))}
+            </div>
+            
+            {/* Mobile swipe hint */}
+            <div className="text-center mt-4 sm:hidden">
+              <p className="text-xs text-foreground/50">
+                Swipe to navigate • Tap card to flip
+              </p>
+            </div>
           </div>
         )}
       </main>
 
-      <footer className="py-8 text-center">
+      {/* Footer - responsive button sizing */}
+      <footer className="py-6 sm:py-8 md:py-10 px-4 text-center">
         {!loading && (
-          <Button onClick={handleRegenerate} disabled={isRegenerating}>
-            {isRegenerating ? <Loader className="mr-2 h-4 w-4" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+          <Button 
+            onClick={handleRegenerate} 
+            disabled={isRegenerating}
+            size="lg"
+            className="w-full max-w-xs sm:w-auto text-sm sm:text-base"
+          >
+            {isRegenerating ? (
+              <Loader className="mr-2 h-4 w-4" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
             Regenerate Words
           </Button>
         )}

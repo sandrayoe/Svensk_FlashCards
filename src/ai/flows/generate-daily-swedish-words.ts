@@ -29,13 +29,17 @@ export async function generateDailySwedishWords(): Promise<GenerateDailySwedishW
 const prompt = ai.definePrompt({
   name: 'generateDailySwedishWordsPrompt',
   output: {schema: GenerateDailySwedishWordsOutputSchema},
-  prompt: `You are a Swedish language expert. Generate a list of 5 common and useful Swedish words, suitable for language learners.
+  prompt: `You are a Swedish language expert. Generate a list of 5 Swedish words at B1-C1 CEFR level, suitable for intermediate to upper-intermediate learners.
 
-  The Swedish words should be common and useful, and avoid rare or difficult-to-understand vocabulary.
-  Avoid including nouns without definite articles (en or ett).
+  The words should be:
+  - Intermediate level (B1-C1 CEFR) - not basic beginner vocabulary
+  - Useful in everyday conversations, work, and professional contexts
+  - Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
+  - Avoid overly academic or highly specialized technical terms
+  - Include nouns with their definite articles (en/ett/det/den)
 
   Return the Swedish words with their English translations in the following JSON format:
-  {{json examples='{"words": [{"swedish": "ordet", "english": "the word"}, {"swedish": "att tala", "english": "to speak"}]}'}}`,
+  {{json examples='{"words": [{"swedish": "att utveckla", "english": "to develop"}, {"swedish": "utmaningen", "english": "the challenge"}]}'}}`,
 });
 
 const generateDailySwedishWordsFlow = ai.defineFlow(
@@ -44,7 +48,35 @@ const generateDailySwedishWordsFlow = ai.defineFlow(
     outputSchema: GenerateDailySwedishWordsOutputSchema,
   },
   async () => {
-    const {output} = await prompt({});
-    return output!;
+    try {
+      const result = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        prompt: `You are a Swedish language expert. Generate a list of 5 Swedish words at B1-C1 CEFR level, suitable for intermediate to upper-intermediate learners.
+
+The words should be:
+- Intermediate level (B1-C1 CEFR) - not basic beginner vocabulary
+- Useful in everyday conversations, work, and professional contexts
+- Include varied word types: verbs, nouns with articles, adjectives, compound words, expressions
+- Avoid overly academic or highly specialized technical terms
+- Include nouns with their definite articles (en/ett/det/den)
+
+Examples of appropriate level: "att utveckla" (to develop), "utmaningen" (the challenge), "att genomföra" (to implement), "betydelsefull" (significant)
+
+Return the Swedish words with their English translations in the following JSON format:
+{"words": [{"swedish": "att utveckla", "english": "to develop"}, {"swedish": "utmaningen", "english": "the challenge"}]}`,
+        output: {
+          schema: GenerateDailySwedishWordsOutputSchema,
+        },
+      });
+
+      if (!result.output) {
+        throw new Error('No output generated from AI');
+      }
+
+      return result.output;
+    } catch (error) {
+      console.error('Error generating Swedish words:', error);
+      throw new Error('Failed to generate Swedish words');
+    }
   }
 );
